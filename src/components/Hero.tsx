@@ -4,6 +4,24 @@ import { motion } from 'framer-motion';
 import { useRef } from 'react';
 import * as THREE from 'three';
 
+// Points for a hollow cup
+const cupPoints: THREE.Vector2[] = [];
+// Outer wall
+for (let i = 0; i <= 10; i++) {
+  cupPoints.push(new THREE.Vector2(0.9 + i * 0.03, i * 0.2));
+}
+// Rim
+cupPoints.push(new THREE.Vector2(1.22, 2.0));
+cupPoints.push(new THREE.Vector2(1.18, 2.0));
+// Inner wall
+for (let i = 10; i >= 1; i--) {
+  cupPoints.push(new THREE.Vector2(0.85 + i * 0.03, i * 0.2));
+}
+// Inside bottom
+cupPoints.push(new THREE.Vector2(0.0, 0.2));
+// Outside bottom
+cupPoints.push(new THREE.Vector2(0.0, 0.0));
+
 // An abstract minimalist coffee cup representation
 function MinimalistCup() {
   const cupRef = useRef<THREE.Group>(null);
@@ -18,26 +36,26 @@ function MinimalistCup() {
   return (
     <group ref={cupRef} position={[0, -1, 0]}>
       {/* Cup Body */}
-      <mesh position={[0, 1.5, 0]} castShadow>
-        <cylinderGeometry args={[1.2, 0.9, 2.5, 32]} />
-        <meshStandardMaterial color="#F9F9F9" roughness={0.1} metalness={0.1} />
+      <mesh position={[0, 0, 0]} castShadow receiveShadow>
+        <latheGeometry args={[cupPoints, 64]} />
+        <meshStandardMaterial color="#F9F9F9" roughness={0.1} metalness={0.1} side={THREE.DoubleSide} />
       </mesh>
       
       {/* Liquid inside */}
-      <mesh position={[0, 2.6, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[1.15, 32]} />
+      <mesh position={[0, 1.8, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[1.05, 64]} />
         <meshStandardMaterial color="#3E2723" roughness={0.8} />
       </mesh>
       
       {/* Handle */}
-      <mesh position={[1.3, 1.5, 0]} rotation={[0, 0, -Math.PI / 8]}>
-        <torusGeometry args={[0.6, 0.15, 16, 32, Math.PI]} />
+      <mesh position={[1.0, 1.0, 0]} rotation={[0, 0, -Math.PI / 10]}>
+        <torusGeometry args={[0.5, 0.12, 16, 64]} />
         <meshStandardMaterial color="#F9F9F9" roughness={0.1} metalness={0.1} />
       </mesh>
       
       {/* Saucer */}
-      <mesh position={[0, 0.1, 0]} receiveShadow castShadow>
-        <cylinderGeometry args={[2.2, 1.8, 0.2, 32]} />
+      <mesh position={[0, 0.05, 0]} receiveShadow castShadow>
+        <cylinderGeometry args={[1.8, 1.5, 0.1, 64]} />
         <meshStandardMaterial color="#A7B6A1" roughness={0.3} metalness={0.2} />
       </mesh>
     </group>
@@ -46,7 +64,6 @@ function MinimalistCup() {
 
 interface HeroProps {
   setCursorVariant: (variant: string) => void;
-  setCursorText: (text: string) => void;
 }
 
 const Hero = ({ setCursorVariant }: HeroProps) => {

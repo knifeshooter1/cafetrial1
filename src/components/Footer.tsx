@@ -66,7 +66,7 @@ const Footer = ({ setCursorVariant, setCursorText }: FooterProps) => {
           onMouseLeave={() => { setCursorText(''); setCursorVariant('default'); }}
         >
           <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1m2!1m3!1m2!1s0x12a49816718e30e5%3A0x44b0fb3d4f47660a!2sBarcelona%2C%20Spain!5e0!3m2!1sen!2sus!4v1714000000000!5m2!1sen!2sus" 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2993.842232976451!2d2.176913!3d41.385063!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12a4a2f056461fb5%3A0x6b6389279ea1df0!2sPla%C3%A7a%20de%20Catalunya!5e0!3m2!1sen!2sus!4v1689100000000!5m2!1sen!2sus" 
             width="100%" 
             height="100%" 
             style={{ border: 0, filter: 'grayscale(100%) contrast(1.2) opacity(0.8)' }} 
