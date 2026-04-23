@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, ContactShadows, Text } from '@react-three/drei';
+import { Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 
 const bases = [
@@ -34,7 +34,7 @@ const sizes = [
 ];
 
 // 3D Visualizer Component
-function DrinkVisualizer({ base, milk, sweetness, size }: any) {
+function DrinkVisualizer({ base, milk, size }: any) {
   const groupRef = useRef<THREE.Group>(null);
   const jugRef = useRef<THREE.Group>(null);
   const streamRef = useRef<THREE.Mesh>(null);
@@ -77,41 +77,43 @@ function DrinkVisualizer({ base, milk, sweetness, size }: any) {
   return (
     <>
       <group ref={groupRef} position={[0, -1, 0]}>
-        {/* Café Cup */}
+        {/* Café Cup Wall (Open Ended) */}
         <mesh castShadow receiveShadow>
-          <cylinderGeometry args={[1.2, 0.9, 2.5, 32]} />
+          <cylinderGeometry args={[1.2, 0.9, 2.5, 32, 1, true]} />
           <meshStandardMaterial color="#fff" roughness={0.1} side={THREE.DoubleSide} />
         </mesh>
         
-        {/* Cup Logo */}
-        <Text position={[0, 0, 1.05]} rotation={[0, 0, 0]} fontSize={0.3} color="#2b1b13" font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff">
-          PAPUT
-        </Text>
+        {/* Cup Base */}
+        <mesh position={[0, -1.25, 0]}>
+          <cylinderGeometry args={[0.9, 0.9, 0.1, 32]} />
+          <meshStandardMaterial color="#fff" roughness={0.1} />
+        </mesh>
+
+        {/* Cup Design (Colored Band) */}
+        <mesh position={[0, 0, 0]}>
+          <cylinderGeometry args={[1.06, 1.06, 0.4, 32, 1, true]} />
+          <meshStandardMaterial color="#8baeb3" roughness={0.3} side={THREE.DoubleSide} />
+        </mesh>
 
         {/* Liquid Base */}
         <mesh position={[0, -1.2 + size.volume * 1.25, 0]}>
-          <cylinderGeometry args={[0.9 + size.volume * 0.15, 0.85, size.volume * 2.5, 32]} />
+          <cylinderGeometry args={[0.9 + size.volume * 0.15, 0.88, size.volume * 2.5, 32]} />
           <meshStandardMaterial color={base.color} roughness={0.2} />
         </mesh>
 
         {/* Foam Layer */}
         {milk.addsFoam && (
           <mesh position={[0, -1.2 + size.volume * 2.5 + 0.1, 0]}>
-            <cylinderGeometry args={[1.05, 1.05, 0.2, 32]} />
+            <cylinderGeometry args={[0.9 + size.volume * 0.15 + 0.05, 0.9 + size.volume * 0.15, 0.2, 32]} />
             <meshStandardMaterial color="#f5eedc" roughness={0.9} />
           </mesh>
         )}
 
         {/* Handle */}
-        <mesh position={[1.1, 0.2, 0]} rotation={[0, 0, -Math.PI / 6]}>
-          <torusGeometry args={[0.6, 0.15, 16, 32, Math.PI]} />
+        <mesh position={[1.05, 0.2, 0]} rotation={[0, 0, -Math.PI / 6]}>
+          <torusGeometry args={[0.5, 0.12, 16, 32]} />
           <meshStandardMaterial color="#fff" roughness={0.1} />
         </mesh>
-
-        {/* Sugar Particles */}
-        {sweetness.level > 0 && (
-          <SugarParticles level={sweetness.level} />
-        )}
       </group>
 
       {/* Milk Jug */}
@@ -133,42 +135,10 @@ function DrinkVisualizer({ base, milk, sweetness, size }: any) {
         {/* Stream */}
         <mesh ref={streamRef} position={[-0.5, -1.0, 0]} scale={[1, 0, 1]}>
           <cylinderGeometry args={[0.04, 0.02, 2.5, 8]} />
-          <meshBasicMaterial color="#ffffff" transparent opacity={0} />
+          <meshBasicMaterial color="#e8dcc5" transparent opacity={0} />
         </mesh>
       </group>
     </>
-  );
-}
-
-function SugarParticles({ level }: { level: number }) {
-  const count = level * 10;
-  const particles = useRef<THREE.Group>(null);
-
-  useFrame((state) => {
-    if (particles.current) {
-      particles.current.children.forEach((child, i) => {
-        child.position.y += 0.02 + Math.sin(state.clock.elapsedTime + i) * 0.01;
-        child.rotation.x += 0.05;
-        child.rotation.y += 0.05;
-        if (child.position.y > 3) {
-          child.position.y = 1.5;
-        }
-      });
-    }
-  });
-
-  return (
-    <group ref={particles}>
-      {Array.from({ length: count }).map((_, i) => (
-        <mesh 
-          key={i} 
-          position={[(Math.random() - 0.5) * 1.5, 1.5 + Math.random() * 1.5, (Math.random() - 0.5) * 1.5]}
-        >
-          <boxGeometry args={[0.08, 0.08, 0.08]} />
-          <meshPhysicalMaterial color="#fff" roughness={0.1} transmission={0.9} transparent opacity={0.8} />
-        </mesh>
-      ))}
-    </group>
   );
 }
 
@@ -193,7 +163,7 @@ export default function DrinkCustomizer() {
           <Canvas camera={{ position: [0, 2, 8], fov: 45 }}>
             <ambientLight intensity={0.6} />
             <spotLight position={[5, 10, 5]} angle={0.3} penumbra={1} castShadow />
-            <DrinkVisualizer base={base} milk={milk} sweetness={sweetness} size={size} />
+            <DrinkVisualizer base={base} milk={milk} size={size} />
             <ContactShadows position={[0, -1.2, 0]} opacity={0.5} scale={10} blur={2} far={4} />
             <Environment preset="city" />
           </Canvas>
