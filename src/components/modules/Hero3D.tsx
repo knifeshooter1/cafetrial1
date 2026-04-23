@@ -43,22 +43,22 @@ function HeroCup() {
         <group ref={cupRef}>
           {/* Cup body */}
           <mesh castShadow receiveShadow>
-            <cylinderGeometry args={[1.1, 0.85, 2.0, 48]} />
+            <cylinderGeometry args={[1.0, 0.75, 1.8, 48]} />
             <meshPhysicalMaterial color="#1A1A1A" roughness={0.15} metalness={0.6} clearcoat={0.5} />
           </mesh>
-          {/* Coffee inside */}
-          <mesh position={[0, 0.15, 0]}>
-            <cylinderGeometry args={[1.0, 0.78, 1.8, 48]} />
+          {/* Coffee inside — shorter than cup */}
+          <mesh position={[0, -0.05, 0]}>
+            <cylinderGeometry args={[0.92, 0.7, 1.5, 48]} />
             <meshStandardMaterial color="#1a0f0a" roughness={0.9} />
           </mesh>
           {/* Latte art */}
-          <mesh position={[0, 1.01, 0]} rotation={[-Math.PI/2,0,0]}>
+          <mesh position={[0, 0.66, 0]} rotation={[-Math.PI/2,0,0]}>
             <ringGeometry args={[0.1, 0.35, 32]} />
             <meshStandardMaterial color="#C8A882" transparent opacity={0.5} />
           </mesh>
-          {/* Handle */}
-          <mesh position={[1.05, 0.1, 0]} rotation={[0,0,-Math.PI/10]}>
-            <torusGeometry args={[0.45, 0.09, 12, 48, Math.PI]} />
+          {/* Handle — full torus ring */}
+          <mesh position={[1.1, -0.1, 0]} rotation={[Math.PI/2, 0, 0]}>
+            <torusGeometry args={[0.35, 0.08, 16, 48]} />
             <meshPhysicalMaterial color="#1A1A1A" roughness={0.15} metalness={0.6} clearcoat={0.5} />
           </mesh>
         </group>

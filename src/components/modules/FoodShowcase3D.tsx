@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
 import * as THREE from 'three';
@@ -6,10 +6,17 @@ import * as THREE from 'three';
 function DetailedCroissant({ hovered }: { hovered: boolean }) {
   const ref = useRef<THREE.Group>(null);
   useFrame((_, d) => { if (ref.current) ref.current.rotation.y += hovered ? d*1.5 : d*0.3; });
+  const curve = useMemo(() => new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.7, 0.1, 0),
+    new THREE.Vector3(-0.4, 0.3, 0.05),
+    new THREE.Vector3(0, 0.4, 0),
+    new THREE.Vector3(0.4, 0.3, -0.05),
+    new THREE.Vector3(0.7, 0.1, 0),
+  ]), []);
   return (
     <group ref={ref}>
-      <mesh rotation={[0,0,Math.PI/8]}><torusGeometry args={[0.6,0.28,16,32,Math.PI*0.8]}/><meshStandardMaterial color="#D4A054" roughness={0.7}/></mesh>
-      <mesh position={[0,0.04,0]} rotation={[0,0,Math.PI/8]}><torusGeometry args={[0.6,0.3,6,32,Math.PI*0.8]}/><meshStandardMaterial color="#E8B865" roughness={0.8} transparent opacity={0.4}/></mesh>
+      <mesh><tubeGeometry args={[curve, 32, 0.2, 16, false]}/><meshStandardMaterial color={hovered ? '#ffdead' : '#D4A054'} roughness={0.7}/></mesh>
+      <mesh><tubeGeometry args={[curve, 32, 0.22, 8, false]}/><meshStandardMaterial color="#E8B865" roughness={0.8} transparent opacity={0.3}/></mesh>
     </group>
   );
 }

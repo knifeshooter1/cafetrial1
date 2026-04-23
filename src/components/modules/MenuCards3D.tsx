@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
 import * as THREE from 'three';
@@ -10,9 +10,9 @@ function CupModel({ hovered }: { hovered: boolean }) {
   return (
     <group ref={ref}>
       <mesh position={[0,-0.3,0]} castShadow><cylinderGeometry args={[0.75,0.55,1.4,32]}/><meshPhysicalMaterial color="#F5F0EB" roughness={0.15} clearcoat={0.3}/></mesh>
-      <mesh position={[0,0.35,0]} rotation={[-Math.PI/2,0,0]}><circleGeometry args={[0.7,32]}/><meshStandardMaterial color="#4A2C17" roughness={0.7}/></mesh>
+      <mesh position={[0,0.1,0]}><cylinderGeometry args={[0.68,0.5,1.0,32]}/><meshStandardMaterial color="#4A2C17" roughness={0.7}/></mesh>
       <mesh position={[0,0.36,0]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[0.08,0.25,32]}/><meshStandardMaterial color="#C8A882" transparent opacity={0.6}/></mesh>
-      <mesh position={[0.8,-0.1,0]} rotation={[0,0,-Math.PI/10]}><torusGeometry args={[0.35,0.08,12,32,Math.PI]}/><meshPhysicalMaterial color="#F5F0EB" roughness={0.15} clearcoat={0.3}/></mesh>
+      <mesh position={[0.85,-0.15,0]} rotation={[Math.PI/2,0,0]}><torusGeometry args={[0.3,0.07,16,32]}/><meshPhysicalMaterial color="#F5F0EB" roughness={0.15} clearcoat={0.3}/></mesh>
       <mesh position={[0,-1.05,0]} castShadow><cylinderGeometry args={[1.2,1.0,0.08,32]}/><meshPhysicalMaterial color="#A7B6A1" roughness={0.25}/></mesh>
     </group>
   );
@@ -21,10 +21,19 @@ function CupModel({ hovered }: { hovered: boolean }) {
 function CroissantModel({ hovered }: { hovered: boolean }) {
   const ref = useRef<THREE.Group>(null);
   useFrame((_, d) => { if (ref.current) ref.current.rotation.y += hovered ? d*1.5 : d*0.3; });
+  const curve = useMemo(() => new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.8, 0.1, 0),
+    new THREE.Vector3(-0.5, 0.35, 0.05),
+    new THREE.Vector3(0, 0.45, 0),
+    new THREE.Vector3(0.5, 0.35, -0.05),
+    new THREE.Vector3(0.8, 0.1, 0),
+  ]), []);
   return (
     <group ref={ref}>
-      <mesh rotation={[0,0,Math.PI/8]}><torusGeometry args={[0.7,0.3,16,32,Math.PI*0.8]}/><meshStandardMaterial color="#D4A054" roughness={0.7}/></mesh>
-      <mesh position={[0,0.05,0]} rotation={[0,0,Math.PI/8]}><torusGeometry args={[0.7,0.32,6,32,Math.PI*0.8]}/><meshStandardMaterial color="#E8B865" roughness={0.8} transparent opacity={0.4}/></mesh>
+      <mesh><tubeGeometry args={[curve, 32, 0.22, 16, false]}/><meshStandardMaterial color="#D4A054" roughness={0.7}/></mesh>
+      <mesh><tubeGeometry args={[curve, 32, 0.24, 8, false]}/><meshStandardMaterial color="#E8B865" roughness={0.8} transparent opacity={0.3}/></mesh>
+      <mesh position={[-0.8, 0.1, 0]}><coneGeometry args={[0.18, 0.3, 8]}/><meshStandardMaterial color="#C99544" roughness={0.7}/></mesh>
+      <mesh position={[0.8, 0.1, 0]}><coneGeometry args={[0.18, 0.3, 8]}/><meshStandardMaterial color="#C99544" roughness={0.7}/></mesh>
     </group>
   );
 }

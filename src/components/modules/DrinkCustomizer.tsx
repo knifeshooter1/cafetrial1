@@ -32,31 +32,41 @@ function CustomCup({ baseColor, foam, cupScale }: { baseColor:string, foam:boole
   });
   return (
     <group ref={groupRef} scale={cupScale}>
-      {/* Cup outer body — solid opaque ceramic */}
+      {/* Glass cup body — transparent so we can see inside */}
       <mesh castShadow>
-        <cylinderGeometry args={[1.1, 0.85, 2.2, 48]} />
-        <meshPhysicalMaterial color="#e8e4df" roughness={0.12} clearcoat={0.3} />
+        <cylinderGeometry args={[1.0, 0.75, 2.0, 48, 1, true]} />
+        <meshPhysicalMaterial color="#ffffff" roughness={0.05} transmission={0.8} thickness={0.5} transparent opacity={0.25} side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
-      {/* Liquid filling inside */}
-      <mesh ref={liquidRef} position={[0, 0.12, 0]}>
-        <cylinderGeometry args={[1.0, 0.78, 2.0, 48]} />
+      {/* Glass bottom */}
+      <mesh position={[0, -1.0, 0]} rotation={[-Math.PI/2, 0, 0]}>
+        <circleGeometry args={[0.75, 48]} />
+        <meshPhysicalMaterial color="#ffffff" roughness={0.05} transmission={0.8} thickness={0.5} transparent opacity={0.25} />
+      </mesh>
+      {/* Liquid — SHORT, doesn't overflow. Sits at 60% fill */}
+      <mesh ref={liquidRef} position={[0, -0.35, 0]}>
+        <cylinderGeometry args={[0.85, 0.68, 1.2, 48]} />
         <meshStandardMaterial color={baseColor} roughness={0.5} />
       </mesh>
-      {/* Foam layer on top */}
+      {/* Liquid top surface */}
+      <mesh position={[0, 0.25, 0]} rotation={[-Math.PI/2, 0, 0]}>
+        <circleGeometry args={[0.85, 48]} />
+        <meshStandardMaterial color={baseColor} roughness={0.3} />
+      </mesh>
+      {/* Foam layer — sits on top of liquid, not above cup */}
       {foam && (
-        <mesh position={[0, 1.15, 0]}>
-          <cylinderGeometry args={[1.02, 0.98, 0.15, 48]} />
+        <mesh position={[0, 0.35, 0]}>
+          <cylinderGeometry args={[0.87, 0.85, 0.12, 48]} />
           <meshStandardMaterial color="#fff" roughness={0.9} />
         </mesh>
       )}
-      {/* Handle */}
-      <mesh position={[1.05, 0.0, 0]} rotation={[0, 0, -Math.PI / 10]}>
-        <torusGeometry args={[0.45, 0.08, 12, 48, Math.PI]} />
-        <meshPhysicalMaterial color="#e8e4df" roughness={0.12} clearcoat={0.3} />
+      {/* Handle — full torus ring */}
+      <mesh position={[1.1, -0.1, 0]} rotation={[Math.PI/2, 0, 0]}>
+        <torusGeometry args={[0.3, 0.07, 16, 48]} />
+        <meshPhysicalMaterial color="#e8e8e8" roughness={0.05} transparent opacity={0.4} />
       </mesh>
       {/* Saucer */}
-      <mesh position={[0, -1.18, 0]} receiveShadow castShadow>
-        <cylinderGeometry args={[1.6, 1.4, 0.1, 48]} />
+      <mesh position={[0, -1.1, 0]} receiveShadow castShadow>
+        <cylinderGeometry args={[1.5, 1.3, 0.1, 48]} />
         <meshPhysicalMaterial color="#A7B6A1" roughness={0.25} clearcoat={0.2} />
       </mesh>
     </group>
@@ -78,7 +88,7 @@ export default function DrinkCustomizer() {
   return (
     <section style={{ display:'flex', flexWrap:'wrap', backgroundColor:'#F9F9F9', borderRadius:'16px', overflow:'hidden', margin:'2rem 0', border:'1px solid #eaeaea' }}>
       <div style={{ flex:'1 1 400px', height:'500px', position:'relative', backgroundColor:'#e8e4df' }}>
-        <Canvas camera={{ position:[0,2,6], fov:40 }}>
+        <Canvas camera={{ position:[0, 1.5, 5], fov:40 }}>
           <ambientLight intensity={0.7}/>
           <directionalLight position={[5,10,5]} intensity={1.2} color="#ffebd6"/>
           <directionalLight position={[-3,4,-5]} intensity={0.4} color="#a7b6a1"/>
