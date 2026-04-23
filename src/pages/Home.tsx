@@ -60,25 +60,6 @@ const Home = () => {
         >
           Our Room
         </Link>
-        <Link 
-          to="/modules"
-          onMouseEnter={() => { setCursorText('NEW'); setCursorVariant('view'); }}
-          onMouseLeave={() => { setCursorText(''); setCursorVariant('default'); }}
-          style={{ 
-            fontSize: '0.8rem', 
-            textTransform: 'uppercase', 
-            letterSpacing: '0.1em',
-            padding: '10px 20px',
-            border: '1px solid var(--text-charcoal)',
-            borderRadius: '2px',
-            background: 'transparent',
-            mixBlendMode: 'difference',
-            color: '#fff',
-            borderColor: '#fff'
-          }}
-        >
-          View Modules
-        </Link>
       </div>
 
       <Hero setCursorVariant={setCursorVariant} />
