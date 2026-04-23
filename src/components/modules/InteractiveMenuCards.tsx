@@ -1,71 +1,16 @@
-import { useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { useState } from 'react';
+import { Canvas } from '@react-three/fiber';
 import { motion, AnimatePresence } from 'framer-motion';
-import * as THREE from 'three';
-
-// 3D Models (Simplified abstract representations)
-function CoffeeCup({ hovered }: { hovered: boolean }) {
-  const ref = useRef<THREE.Group>(null);
-  useFrame(() => {
-    if (ref.current && hovered) {
-      ref.current.rotation.y += 0.05;
-    } else if (ref.current) {
-      ref.current.rotation.y += 0.005;
-    }
-  });
-  return (
-    <group ref={ref} position={[0, -0.5, 0]}>
-      <mesh castShadow receiveShadow position={[0, 0.5, 0]}>
-        <cylinderGeometry args={[0.6, 0.4, 1.2, 32]} />
-        <meshStandardMaterial color="#fff" />
-      </mesh>
-    </group>
-  );
-}
-
-function Croissant({ hovered }: { hovered: boolean }) {
-  const ref = useRef<THREE.Mesh>(null);
-  useFrame(() => {
-    if (ref.current && hovered) {
-      ref.current.rotation.x += 0.05;
-      ref.current.rotation.y += 0.05;
-    } else if (ref.current) {
-      ref.current.rotation.y += 0.005;
-    }
-  });
-  return (
-    <mesh ref={ref} castShadow receiveShadow rotation={[Math.PI/2, 0, 0]}>
-      <torusGeometry args={[0.5, 0.25, 16, 32, Math.PI]} />
-      <meshStandardMaterial color="#d4b483" roughness={0.6} />
-    </mesh>
-  );
-}
-
-function Donut({ hovered }: { hovered: boolean }) {
-  const ref = useRef<THREE.Mesh>(null);
-  useFrame(() => {
-    if (ref.current && hovered) {
-      ref.current.rotation.x += 0.05;
-      ref.current.rotation.z += 0.05;
-    } else if (ref.current) {
-      ref.current.rotation.y += 0.005;
-    }
-  });
-  return (
-    <mesh ref={ref} castShadow receiveShadow rotation={[Math.PI/4, 0, 0]}>
-      <torusGeometry args={[0.5, 0.25, 32, 64]} />
-      <meshStandardMaterial color="#fca311" roughness={0.4} />
-    </mesh>
-  );
-}
+import { useCart } from '../../context/CartContext.tsx';
+import { EspressoModel, MochaModel, CroissantModel, AlmondCroissantModel, DonutModel } from './FoodModels.tsx';
 
 const menuItems = [
-  { id: 1, name: 'House Espresso', price: 150, ingredients: '100% Arabica, Notes of Caramel', Model: CoffeeCup },
-  { id: 2, name: 'Butter Croissant', price: 180, ingredients: 'French Butter, Flour, Yeast', Model: Croissant },
-  { id: 3, name: 'Glazed Donut', price: 120, ingredients: 'Flour, Sugar, Vanilla Glaze', Model: Donut },
-  { id: 4, name: 'Mocha Latte', price: 240, ingredients: 'Espresso, Cocoa, Steamed Milk', Model: CoffeeCup }, // Reusing model for demo
-  { id: 5, name: 'Almond Croissant', price: 220, ingredients: 'Croissant, Frangipane, Almonds', Model: Croissant },
-  { id: 6, name: 'Chocolate Donut', price: 140, ingredients: 'Flour, Cocoa Glaze, Sprinkles', Model: Donut },
+  { id: 'house-espresso', name: 'House Espresso', price: 150, ingredients: '100% Arabica, Notes of Caramel', Model: EspressoModel },
+  { id: 'mocha-latte', name: 'Mocha Latte', price: 240, ingredients: 'Espresso, Cocoa, Steamed Milk', Model: MochaModel },
+  { id: 'butter-croissant', name: 'Butter Croissant', price: 180, ingredients: 'French Butter, Flour, Yeast', Model: CroissantModel },
+  { id: 'almond-croissant', name: 'Almond Croissant', price: 220, ingredients: 'Croissant, Frangipane, Almonds', Model: AlmondCroissantModel },
+  { id: 'glazed-donut', name: 'Glazed Donut', price: 120, ingredients: 'Flour, Sugar, Vanilla Glaze', Model: DonutModel, flavor: 'glazed' },
+  { id: 'chocolate-donut', name: 'Chocolate Donut', price: 140, ingredients: 'Flour, Cocoa Glaze, Sprinkles', Model: DonutModel, flavor: 'chocolate' },
 ];
 
 export default function InteractiveMenuCards() {
@@ -82,9 +27,15 @@ export default function InteractiveMenuCards() {
   );
 }
 
-function MenuCard({ item }: { item: typeof menuItems[0] }) {
+function MenuCard({ item }: { item: any }) {
   const [hovered, setHovered] = useState(false);
   const [clicked, setClicked] = useState(false);
+  const { addToCart } = useCart();
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addToCart({ id: item.id, name: item.name, price: item.price });
+  };
 
   return (
     <motion.div 
@@ -107,7 +58,7 @@ function MenuCard({ item }: { item: typeof menuItems[0] }) {
         <Canvas camera={{ position: [0, 2, 4], fov: 45 }}>
           <ambientLight intensity={0.5} />
           <spotLight position={[5, 5, 5]} angle={0.2} penumbra={1} castShadow />
-          <item.Model hovered={hovered} />
+          <item.Model hovered={hovered} flavor={item.flavor} />
         </Canvas>
       </div>
 
@@ -126,8 +77,15 @@ function MenuCard({ item }: { item: typeof menuItems[0] }) {
           >
             <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', fontWeight: 500 }}>{item.name}</h3>
             <div style={{ fontSize: '1.2rem', color: 'var(--accent-sage)', marginBottom: '1rem', fontWeight: 600 }}>₹{item.price}</div>
-            <p style={{ fontSize: '0.9rem', color: '#ccc', lineHeight: 1.5 }}>{item.ingredients}</p>
-            <div style={{ marginTop: 'auto', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.5 }}>Click to close</div>
+            <p style={{ fontSize: '0.9rem', color: '#ccc', lineHeight: 1.5, marginBottom: '2rem' }}>{item.ingredients}</p>
+            
+            <button 
+              onClick={handleAddToCart}
+              style={{ padding: '0.8rem 1.5rem', background: 'var(--accent-sage)', color: '#fff', border: 'none', borderRadius: '30px', fontWeight: 600, cursor: 'pointer', transition: 'background 0.2s' }}
+            >
+              Add to Cart
+            </button>
+            <div style={{ marginTop: 'auto', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.5 }}>Click card to close</div>
           </motion.div>
         ) : (
           <motion.div 

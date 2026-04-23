@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 interface CustomCursorProps {
@@ -6,86 +6,86 @@ interface CustomCursorProps {
   variant?: string;
 }
 
-const CustomCursor = ({ text, variant }: CustomCursorProps) => {
+const CustomCursor = ({ variant }: CustomCursorProps) => {
   const [mousePosition, setMousePosition] = useState({ x: -100, y: -100 });
   const [isHovering, setIsHovering] = useState(false);
+  const ringRef = useRef<HTMLDivElement>(null);
+  const dotRef = useRef<HTMLDivElement>(null);
+
+  // Smooth lag variables
+  const lagPos = useRef({ x: -100, y: -100 });
+  const requestRef = useRef<number>(0);
 
   useEffect(() => {
-    // Add global style to hide default cursor
-    document.body.style.cursor = 'none';
-    
-    // Add listeners for clickable elements to trigger hover state globally if we want
-    // But since `variant` is passed down, we'll rely on the parent or just use a global listener for interactive elements
-    const handleMouseOver = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        target.tagName.toLowerCase() === 'button' ||
-        target.tagName.toLowerCase() === 'a' ||
-        target.closest('button') ||
-        target.closest('a') ||
-        target.getAttribute('role') === 'button' ||
-        window.getComputedStyle(target).cursor === 'pointer'
-      ) {
-        setIsHovering(true);
-      } else {
-        setIsHovering(false);
-      }
-    };
-
     const mouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
+      
+      // Update dot immediately
+      if (dotRef.current) {
+        dotRef.current.style.transform = `translate3d(${e.clientX - 6}px, ${e.clientY - 6}px, 0)`;
+      }
+
+      // Check if hovering clickable
+      const target = e.target as HTMLElement;
+      const clickable = target.closest('a, button, input, [role="button"], canvas, img');
+      setIsHovering(!!clickable || variant === 'view');
     };
 
     window.addEventListener('mousemove', mouseMove);
-    window.addEventListener('mouseover', handleMouseOver);
-    
-    return () => {
-      document.body.style.cursor = 'auto';
-      window.removeEventListener('mousemove', mouseMove);
-      window.removeEventListener('mouseover', handleMouseOver);
-    };
-  }, []);
+    return () => window.removeEventListener('mousemove', mouseMove);
+  }, [variant]);
 
-  const isView = variant === 'view';
-  const isActive = isHovering || isView;
+  useEffect(() => {
+    const animateRing = () => {
+      // Lerp for the lag ring
+      lagPos.current.x += (mousePosition.x - lagPos.current.x) * 0.15;
+      lagPos.current.y += (mousePosition.y - lagPos.current.y) * 0.15;
+      
+      if (ringRef.current) {
+        ringRef.current.style.transform = `translate3d(${lagPos.current.x - 14}px, ${lagPos.current.y - 14}px, 0)`;
+      }
+      requestRef.current = requestAnimationFrame(animateRing);
+    };
+    
+    requestRef.current = requestAnimationFrame(animateRing);
+    return () => cancelAnimationFrame(requestRef.current);
+  }, [mousePosition]);
 
   return (
     <>
-      {/* Inner Dot */}
-      <motion.div
-        animate={{
-          x: mousePosition.x - 6,
-          y: mousePosition.y - 6,
-          scale: isActive ? 0 : 1,
-          opacity: isView ? 0 : 1
-        }}
-        transition={{ type: 'tween', ease: 'linear', duration: 0 }}
+      {/* The solid dot */}
+      <div
+        ref={dotRef}
         style={{
           position: 'fixed', top: 0, left: 0, width: '12px', height: '12px',
-          backgroundColor: '#d4b483', border: '2px solid #b39462', borderRadius: '50%',
-          pointerEvents: 'none', zIndex: 10000, mixBlendMode: 'difference' // Added difference blend mode for contrast against any background
+          background: '#b0e0e6', // Warm amber/cream
+          border: '2px solid #8baeb3',
+          borderRadius: '50%',
+          pointerEvents: 'none',
+          zIndex: 999999,
+          willChange: 'transform'
         }}
       />
-      
-      {/* Outer Trailing Ring */}
+
+      {/* The trailing ring */}
       <motion.div
+        ref={ringRef}
         animate={{
-          x: isActive ? (isView ? mousePosition.x - 40 : mousePosition.x - 24) : mousePosition.x - 14,
-          y: isActive ? (isView ? mousePosition.y - 40 : mousePosition.y - 24) : mousePosition.y - 14,
-          width: isActive ? (isView ? '80px' : '48px') : '28px',
-          height: isActive ? (isView ? '80px' : '48px') : '28px',
-          backgroundColor: isView ? 'rgba(212, 180, 131, 0.9)' : 'transparent',
-          border: isView ? 'none' : '2px solid #d4b483',
+          scale: isHovering ? 2.5 : 1,
+          opacity: isHovering ? 0.4 : 1,
+          borderColor: isHovering ? '#fca311' : '#b0e0e6'
         }}
-        transition={{ type: 'spring', damping: 20, stiffness: 300, mass: 0.5 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         style={{
-          position: 'fixed', top: 0, left: 0, borderRadius: '50%',
-          pointerEvents: 'none', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          mixBlendMode: 'difference'
+          position: 'fixed', top: 0, left: 0, width: '28px', height: '28px',
+          border: '2px solid #b0e0e6',
+          borderRadius: '50%',
+          pointerEvents: 'none',
+          zIndex: 999998,
+          willChange: 'transform, scale, opacity',
+          boxSizing: 'border-box'
         }}
-      >
-        {isView && <span style={{ color: '#000', fontSize: '14px', fontWeight: 600, letterSpacing: '0.1em' }}>{text}</span>}
-      </motion.div>
+      />
     </>
   );
 };
