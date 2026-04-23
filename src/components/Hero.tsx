@@ -4,32 +4,6 @@ import { motion } from 'framer-motion';
 import { useRef } from 'react';
 import * as THREE from 'three';
 
-// Points for a hollow cup with thicker walls and better proportions
-const cupOuterPoints: THREE.Vector2[] = [];
-// Bottom
-cupOuterPoints.push(new THREE.Vector2(0.0, 0.0));
-cupOuterPoints.push(new THREE.Vector2(0.85, 0.0));
-// Outer wall — slight taper outward
-for (let i = 0; i <= 12; i++) {
-  const t = i / 12;
-  const radius = 0.85 + t * 0.4 + Math.sin(t * Math.PI) * 0.05;
-  cupOuterPoints.push(new THREE.Vector2(radius, t * 2.2));
-}
-// Rim lip (outward roll)
-cupOuterPoints.push(new THREE.Vector2(1.30, 2.2));
-cupOuterPoints.push(new THREE.Vector2(1.32, 2.25));
-cupOuterPoints.push(new THREE.Vector2(1.30, 2.30));
-// Inner wall
-cupOuterPoints.push(new THREE.Vector2(1.18, 2.25));
-for (let i = 12; i >= 1; i--) {
-  const t = i / 12;
-  const radius = 0.80 + t * 0.35 + Math.sin(t * Math.PI) * 0.04;
-  cupOuterPoints.push(new THREE.Vector2(radius, t * 2.2));
-}
-// Inner bottom
-cupOuterPoints.push(new THREE.Vector2(0.80, 0.15));
-cupOuterPoints.push(new THREE.Vector2(0.0, 0.15));
-
 function MinimalistCup() {
   const cupRef = useRef<THREE.Group>(null);
 
@@ -41,60 +15,35 @@ function MinimalistCup() {
   });
 
   return (
-    <group ref={cupRef} position={[0, -0.8, 0]}>
-      {/* Cup Body — ceramic with subtle gloss */}
+    <group ref={cupRef} position={[0, -0.5, 0]}>
+      {/* Cup outer body */}
       <mesh castShadow receiveShadow>
-        <latheGeometry args={[cupOuterPoints, 64]} />
-        <meshPhysicalMaterial 
-          color="#F5F0EB" 
-          roughness={0.15} 
-          metalness={0.0} 
-          clearcoat={0.3}
-          clearcoatRoughness={0.2}
-          side={THREE.DoubleSide} 
-        />
+        <cylinderGeometry args={[1.1, 0.85, 2.0, 48]} />
+        <meshPhysicalMaterial color="#F5F0EB" roughness={0.15} clearcoat={0.4} clearcoatRoughness={0.2} />
       </mesh>
-      
-      {/* Coffee liquid surface with latte art hint */}
-      <mesh position={[0, 2.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[1.12, 64]} />
-        <meshStandardMaterial color="#4A2C17" roughness={0.6} metalness={0.1} />
+      {/* Cup inner cavity (dark) */}
+      <mesh position={[0, 0.15, 0]}>
+        <cylinderGeometry args={[1.0, 0.78, 1.8, 48]} />
+        <meshStandardMaterial color="#4A2C17" roughness={0.8} />
       </mesh>
-      {/* Latte art center swirl */}
-      <mesh position={[0, 2.11, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.1, 0.35, 32]} />
-        <meshStandardMaterial color="#C8A882" roughness={0.8} transparent opacity={0.7} />
+      {/* Latte art on coffee surface */}
+      <mesh position={[0, 1.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.1, 0.4, 32]} />
+        <meshStandardMaterial color="#C8A882" transparent opacity={0.6} />
       </mesh>
-      <mesh position={[0, 2.11, 0.15]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[0, 1.02, 0.12]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.05, 0.2, 32]} />
-        <meshStandardMaterial color="#D4B896" roughness={0.8} transparent opacity={0.5} />
+        <meshStandardMaterial color="#D4B896" transparent opacity={0.4} />
       </mesh>
-      
-      {/* Handle — elegant D-shape, half torus */}
-      <mesh position={[1.15, 1.2, 0]} rotation={[0, 0, -Math.PI / 12]}>
-        <torusGeometry args={[0.55, 0.1, 16, 64, Math.PI]} />
-        <meshPhysicalMaterial 
-          color="#F5F0EB" 
-          roughness={0.15} 
-          metalness={0.0}
-          clearcoat={0.3}
-        />
+      {/* Handle */}
+      <mesh position={[1.05, 0.1, 0]} rotation={[0, 0, -Math.PI / 10]}>
+        <torusGeometry args={[0.45, 0.09, 12, 48, Math.PI]} />
+        <meshPhysicalMaterial color="#F5F0EB" roughness={0.15} clearcoat={0.4} />
       </mesh>
-      
-      {/* Saucer — wide, thin, elegant */}
-      <mesh position={[0, -0.02, 0]} receiveShadow castShadow>
-        <cylinderGeometry args={[2.0, 1.7, 0.12, 64]} />
-        <meshPhysicalMaterial 
-          color="#A7B6A1" 
-          roughness={0.25} 
-          metalness={0.1}
-          clearcoat={0.2}
-        />
-      </mesh>
-      {/* Saucer rim detail */}
-      <mesh position={[0, 0.02, 0]} receiveShadow>
-        <cylinderGeometry args={[2.05, 2.0, 0.04, 64]} />
-        <meshPhysicalMaterial color="#97A691" roughness={0.3} metalness={0.1} />
+      {/* Saucer */}
+      <mesh position={[0, -1.08, 0]} receiveShadow castShadow>
+        <cylinderGeometry args={[1.8, 1.6, 0.12, 48]} />
+        <meshPhysicalMaterial color="#A7B6A1" roughness={0.25} clearcoat={0.2} />
       </mesh>
     </group>
   );
@@ -115,7 +64,6 @@ const Hero = ({ setCursorVariant }: HeroProps) => {
         backgroundColor: 'var(--bg-offwhite)'
       }}
     >
-      {/* 3D Canvas Background */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
         <Canvas shadows camera={{ position: [0, 3, 9], fov: 40 }}>
           <color attach="background" args={['#F9F9F9']} />
@@ -135,70 +83,34 @@ const Hero = ({ setCursorVariant }: HeroProps) => {
             </Float>
           </PresentationControls>
 
-          <ContactShadows position={[0, -1.2, 0]} opacity={0.35} scale={15} blur={2.5} far={4} />
+          <ContactShadows position={[0, -1.8, 0]} opacity={0.35} scale={15} blur={2.5} far={4} />
           <Environment preset="city" />
         </Canvas>
       </div>
 
-      {/* Floating Logo Overlay */}
-      <div 
-        style={{ 
-          position: 'absolute', 
-          top: '40px', 
-          left: '50%', 
-          transform: 'translateX(-50%)', 
-          zIndex: 10,
-        }}
-      >
+      {/* Floating Logo */}
+      <div style={{ position: 'absolute', top: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
         <motion.h1 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.5 }}
-          style={{ 
-            fontSize: '1.8rem', 
-            fontWeight: 400, 
-            letterSpacing: '0.25em',
-            textTransform: 'uppercase',
-            color: 'var(--text-charcoal)',
-            fontFamily: 'var(--font-display)',
-          }}
+          style={{ fontSize: '1.8rem', fontWeight: 400, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--text-charcoal)' }}
         >
           Paput
         </motion.h1>
       </div>
 
-      {/* Discover CTA Overlay */}
-      <div 
-        style={{ 
-          position: 'absolute', 
-          bottom: '10%', 
-          left: '50%', 
-          transform: 'translateX(-50%)', 
-          zIndex: 10 
-        }}
-      >
+      {/* Discover CTA */}
+      <div style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 1 }}
-          style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            gap: '12px' 
-          }}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}
           onMouseEnter={() => setCursorVariant('hidden')}
           onMouseLeave={() => setCursorVariant('default')}
         >
-          <span style={{ 
-            fontSize: '0.75rem', 
-            textTransform: 'uppercase', 
-            letterSpacing: '0.2em',
-            fontFamily: 'var(--font-primary)',
-            fontWeight: 400,
-            color: 'var(--text-charcoal)',
-            opacity: 0.6
-          }}>
+          <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.2em', fontWeight: 400, color: 'var(--text-charcoal)', opacity: 0.6 }}>
             Scroll to Discover
           </span>
           <motion.div 

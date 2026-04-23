@@ -4,14 +4,6 @@ import { Environment, Float, PresentationControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion } from 'framer-motion';
 
-const cupPts: THREE.Vector2[] = [];
-cupPts.push(new THREE.Vector2(0.0, 0.0));
-cupPts.push(new THREE.Vector2(0.85, 0.0));
-for (let i = 0; i <= 12; i++) { const t=i/12; cupPts.push(new THREE.Vector2(0.85+t*0.4+Math.sin(t*Math.PI)*0.05, t*2.2)); }
-cupPts.push(new THREE.Vector2(1.30,2.2)); cupPts.push(new THREE.Vector2(1.32,2.25)); cupPts.push(new THREE.Vector2(1.30,2.30)); cupPts.push(new THREE.Vector2(1.18,2.25));
-for (let i = 12; i >= 1; i--) { const t=i/12; cupPts.push(new THREE.Vector2(0.80+t*0.35+Math.sin(t*Math.PI)*0.04, t*2.2)); }
-cupPts.push(new THREE.Vector2(0.80, 0.15)); cupPts.push(new THREE.Vector2(0.0, 0.15));
-
 function HeroCup() {
   const cupRef = useRef<THREE.Group>(null);
   const steamRef = useRef<THREE.Points>(null);
@@ -21,10 +13,10 @@ function HeroCup() {
     const pos = new Float32Array(particleCount * 3);
     const vel: {x:number,y:number}[] = [];
     for (let i = 0; i < particleCount; i++) {
-      pos[i*3] = (Math.random()-0.5)*0.8;
-      pos[i*3+1] = 1.8 + Math.random()*2;
-      pos[i*3+2] = (Math.random()-0.5)*0.8;
-      vel.push({ y:0.008+Math.random()*0.015, x:(Math.random()-0.5)*0.005 });
+      pos[i*3] = (Math.random()-0.5)*0.7;
+      pos[i*3+1] = 1.2 + Math.random()*2;
+      pos[i*3+2] = (Math.random()-0.5)*0.7;
+      vel.push({ y:0.008+Math.random()*0.012, x:(Math.random()-0.5)*0.003 });
     }
     return { positions: pos, velocities: vel };
   }, []);
@@ -32,32 +24,49 @@ function HeroCup() {
   useFrame((state) => {
     if (cupRef.current) {
       cupRef.current.rotation.y = state.clock.elapsedTime * 0.08;
-      cupRef.current.rotation.x = Math.sin(window.scrollY * 0.002) * 0.15;
+      cupRef.current.rotation.x = Math.sin(window.scrollY * 0.002) * 0.1;
     }
     if (steamRef.current) {
       const arr = steamRef.current.geometry.attributes.position.array as Float32Array;
       for (let i = 0; i < particleCount; i++) {
         arr[i*3+1] += velocities[i].y;
-        arr[i*3] += Math.sin(state.clock.elapsedTime + i) * 0.002;
-        if (arr[i*3+1] > 4.5) { arr[i*3+1] = 1.8; arr[i*3] = (Math.random()-0.5)*0.6; }
+        arr[i*3] += Math.sin(state.clock.elapsedTime + i) * 0.001;
+        if (arr[i*3+1] > 4) { arr[i*3+1] = 1.2; arr[i*3] = (Math.random()-0.5)*0.5; }
       }
       steamRef.current.geometry.attributes.position.needsUpdate = true;
     }
   });
 
   return (
-    <group position={[0,-1,0]}>
+    <group position={[0,-0.8,0]}>
       <Float rotationIntensity={0.15} floatIntensity={0.8} speed={1.5}>
         <group ref={cupRef}>
-          <mesh castShadow receiveShadow><latheGeometry args={[cupPts,64]}/><meshPhysicalMaterial color="#1A1A1A" roughness={0.15} metalness={0.6} clearcoat={0.4} side={THREE.DoubleSide}/></mesh>
-          <mesh position={[0,2.1,0]} rotation={[-Math.PI/2,0,0]}><circleGeometry args={[1.12,64]}/><meshStandardMaterial color="#1a0f0a" roughness={0.9}/></mesh>
-          <mesh position={[0,2.11,0]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[0.1,0.35,32]}/><meshStandardMaterial color="#C8A882" transparent opacity={0.5}/></mesh>
-          <mesh position={[1.15,1.2,0]} rotation={[0,0,-Math.PI/12]}><torusGeometry args={[0.55,0.1,16,64,Math.PI]}/><meshPhysicalMaterial color="#1A1A1A" roughness={0.15} metalness={0.6} clearcoat={0.4}/></mesh>
+          {/* Cup body */}
+          <mesh castShadow receiveShadow>
+            <cylinderGeometry args={[1.1, 0.85, 2.0, 48]} />
+            <meshPhysicalMaterial color="#1A1A1A" roughness={0.15} metalness={0.6} clearcoat={0.5} />
+          </mesh>
+          {/* Coffee inside */}
+          <mesh position={[0, 0.15, 0]}>
+            <cylinderGeometry args={[1.0, 0.78, 1.8, 48]} />
+            <meshStandardMaterial color="#1a0f0a" roughness={0.9} />
+          </mesh>
+          {/* Latte art */}
+          <mesh position={[0, 1.01, 0]} rotation={[-Math.PI/2,0,0]}>
+            <ringGeometry args={[0.1, 0.35, 32]} />
+            <meshStandardMaterial color="#C8A882" transparent opacity={0.5} />
+          </mesh>
+          {/* Handle */}
+          <mesh position={[1.05, 0.1, 0]} rotation={[0,0,-Math.PI/10]}>
+            <torusGeometry args={[0.45, 0.09, 12, 48, Math.PI]} />
+            <meshPhysicalMaterial color="#1A1A1A" roughness={0.15} metalness={0.6} clearcoat={0.5} />
+          </mesh>
         </group>
       </Float>
+      {/* Steam particles */}
       <points ref={steamRef}>
         <bufferGeometry><bufferAttribute attach="attributes-position" args={[positions, 3]}/></bufferGeometry>
-        <pointsMaterial size={0.12} color="#ffffff" transparent opacity={0.25} depthWrite={false}/>
+        <pointsMaterial size={0.1} color="#ffffff" transparent opacity={0.2} depthWrite={false}/>
       </points>
     </group>
   );

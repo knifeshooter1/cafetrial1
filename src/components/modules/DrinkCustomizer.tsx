@@ -20,18 +20,10 @@ const sizes = [
   { name:'Large',  scale:1.1, price:80 },
 ];
 
-// Lathe-based cup for the customizer
-const custCupPts: THREE.Vector2[] = [];
-custCupPts.push(new THREE.Vector2(0,0)); custCupPts.push(new THREE.Vector2(0.8,0));
-for (let i=0;i<=10;i++){const t=i/10; custCupPts.push(new THREE.Vector2(0.8+t*0.35, t*2));}
-custCupPts.push(new THREE.Vector2(1.18,2.0)); custCupPts.push(new THREE.Vector2(1.15,2.05)); custCupPts.push(new THREE.Vector2(1.08,2.0));
-for (let i=10;i>=1;i--){const t=i/10; custCupPts.push(new THREE.Vector2(0.75+t*0.3, t*2));}
-custCupPts.push(new THREE.Vector2(0.75,0.12)); custCupPts.push(new THREE.Vector2(0,0.12));
-
 function CustomCup({ baseColor, foam, cupScale }: { baseColor:string, foam:boolean, cupScale:number }) {
   const groupRef = useRef<THREE.Group>(null);
   const liquidRef = useRef<THREE.Mesh>(null);
-  useFrame((state, _) => {
+  useFrame((state) => {
     if (groupRef.current) groupRef.current.rotation.y = state.clock.elapsedTime * 0.2;
     if (liquidRef.current) {
       const mat = liquidRef.current.material as THREE.MeshStandardMaterial;
@@ -40,14 +32,33 @@ function CustomCup({ baseColor, foam, cupScale }: { baseColor:string, foam:boole
   });
   return (
     <group ref={groupRef} scale={cupScale}>
-      {/* Glass body */}
-      <mesh><latheGeometry args={[custCupPts,48]}/><meshPhysicalMaterial color="#e8e4df" roughness={0.1} transmission={0.4} thickness={0.3} transparent opacity={0.6} side={THREE.DoubleSide}/></mesh>
-      {/* Liquid */}
-      <mesh ref={liquidRef} position={[0,0.1,0]}><cylinderGeometry args={[1.0,0.78,1.7,32]}/><meshStandardMaterial color={baseColor} roughness={0.5}/></mesh>
-      {/* Foam layer */}
-      {foam && <mesh position={[0,1.05,0]}><cylinderGeometry args={[1.05,1.0,0.2,32]}/><meshStandardMaterial color="#fff" roughness={0.9}/></mesh>}
+      {/* Cup outer body — solid opaque ceramic */}
+      <mesh castShadow>
+        <cylinderGeometry args={[1.1, 0.85, 2.2, 48]} />
+        <meshPhysicalMaterial color="#e8e4df" roughness={0.12} clearcoat={0.3} />
+      </mesh>
+      {/* Liquid filling inside */}
+      <mesh ref={liquidRef} position={[0, 0.12, 0]}>
+        <cylinderGeometry args={[1.0, 0.78, 2.0, 48]} />
+        <meshStandardMaterial color={baseColor} roughness={0.5} />
+      </mesh>
+      {/* Foam layer on top */}
+      {foam && (
+        <mesh position={[0, 1.15, 0]}>
+          <cylinderGeometry args={[1.02, 0.98, 0.15, 48]} />
+          <meshStandardMaterial color="#fff" roughness={0.9} />
+        </mesh>
+      )}
       {/* Handle */}
-      <mesh position={[1.0,1.0,0]} rotation={[0,0,-Math.PI/10]}><torusGeometry args={[0.45,0.08,12,32,Math.PI]}/><meshPhysicalMaterial color="#e8e4df" roughness={0.1}/></mesh>
+      <mesh position={[1.05, 0.0, 0]} rotation={[0, 0, -Math.PI / 10]}>
+        <torusGeometry args={[0.45, 0.08, 12, 48, Math.PI]} />
+        <meshPhysicalMaterial color="#e8e4df" roughness={0.12} clearcoat={0.3} />
+      </mesh>
+      {/* Saucer */}
+      <mesh position={[0, -1.18, 0]} receiveShadow castShadow>
+        <cylinderGeometry args={[1.6, 1.4, 0.1, 48]} />
+        <meshPhysicalMaterial color="#A7B6A1" roughness={0.25} clearcoat={0.2} />
+      </mesh>
     </group>
   );
 }
@@ -58,17 +69,19 @@ export default function DrinkCustomizer() {
   const [size, setSize] = useState(sizes[1]);
   const totalPrice = base.price + milk.price + size.price;
 
-  const btnStyle = (active:boolean) => ({
+  const btnStyle = (active:boolean): React.CSSProperties => ({
     padding:'0.8rem 1.5rem', borderRadius:'8px', border:'1px solid #ddd',
     backgroundColor: active ? '#2C2C2C':'#fff', color: active ? '#fff':'#333',
-    cursor:'pointer' as const, transition:'all 0.2s', fontFamily:'var(--font-primary)',
+    cursor:'pointer', transition:'all 0.2s',
   });
 
   return (
     <section style={{ display:'flex', flexWrap:'wrap', backgroundColor:'#F9F9F9', borderRadius:'16px', overflow:'hidden', margin:'2rem 0', border:'1px solid #eaeaea' }}>
       <div style={{ flex:'1 1 400px', height:'500px', position:'relative', backgroundColor:'#e8e4df' }}>
         <Canvas camera={{ position:[0,2,6], fov:40 }}>
-          <ambientLight intensity={0.7}/><directionalLight position={[5,10,5]} intensity={1.2} color="#ffebd6"/>
+          <ambientLight intensity={0.7}/>
+          <directionalLight position={[5,10,5]} intensity={1.2} color="#ffebd6"/>
+          <directionalLight position={[-3,4,-5]} intensity={0.4} color="#a7b6a1"/>
           <CustomCup baseColor={base.color} foam={milk.foam} cupScale={size.scale}/>
           <Environment preset="city"/>
         </Canvas>

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import CustomCursor from '../components/CustomCursor';
 import Hero3D from '../components/modules/Hero3D';
 import SpecialsBanner from '../components/modules/SpecialsBanner';
 import MenuCards3D from '../components/modules/MenuCards3D';
@@ -13,13 +15,19 @@ import ReviewsCarousel from '../components/modules/ReviewsCarousel';
 import HoursMapWidget from '../components/modules/HoursMapWidget';
 
 export default function ModulesShowcase() {
+  const [cursorText, setCursorText] = useState('');
+  const [cursorVariant, setCursorVariant] = useState('default');
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#fff', color: '#2C2C2C', paddingBottom: '4rem' }}>
+      <CustomCursor text={cursorText} variant={cursorVariant} />
       
       {/* Navigation */}
       <div style={{ position: 'fixed', top: '20px', left: '20px', zIndex: 9999 }}>
         <Link 
           to="/"
+          onMouseEnter={() => { setCursorText('HOME'); setCursorVariant('view'); }}
+          onMouseLeave={() => { setCursorText(''); setCursorVariant('default'); }}
           style={{ 
             padding: '10px 20px', backgroundColor: 'rgba(255,255,255,0.8)', 
             backdropFilter: 'blur(10px)', color: '#2C2C2C', borderRadius: '30px', 
