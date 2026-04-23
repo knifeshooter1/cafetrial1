@@ -62,6 +62,29 @@ const Home = () => {
         </Link>
       </div>
 
+      {/* Floating Link to Modules */}
+      <div style={{ position: 'fixed', top: '90px', right: '5vw', zIndex: 100 }}>
+        <Link 
+          to="/modules"
+          onMouseEnter={() => { setCursorText('NEW'); setCursorVariant('view'); }}
+          onMouseLeave={() => { setCursorText(''); setCursorVariant('default'); }}
+          style={{ 
+            fontSize: '0.8rem', 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.1em',
+            padding: '10px 20px',
+            border: '1px solid var(--text-charcoal)',
+            borderRadius: '2px',
+            background: '#A7B6A1',
+            color: '#fff',
+            borderColor: '#A7B6A1',
+            textDecoration: 'none'
+          }}
+        >
+          View 12 Modules
+        </Link>
+      </div>
+
       <Hero setCursorVariant={setCursorVariant} />
       <Lookbook setCursorVariant={setCursorVariant} setCursorText={setCursorText} />
       <HoverMenu setCursorVariant={setCursorVariant} />
