@@ -64,12 +64,12 @@ function DrinkVisualizer({ base, milk, sweetness, size }: any) {
         jugRef.current.position.lerp(new THREE.Vector3(1.5, 2.5, 0), 0.1);
         jugRef.current.rotation.z = THREE.MathUtils.lerp(jugRef.current.rotation.z, Math.PI / 4, 0.1);
         streamRef.current.scale.y = THREE.MathUtils.lerp(streamRef.current.scale.y, 1, 0.2);
-        (streamRef.current.material as THREE.Material).opacity = THREE.MathUtils.lerp((streamRef.current.material as THREE.Material).opacity, 1, 0.2);
+        (streamRef.current.material as THREE.Material).opacity = 1;
       } else {
         jugRef.current.position.lerp(new THREE.Vector3(3, 4, 0), 0.05);
         jugRef.current.rotation.z = THREE.MathUtils.lerp(jugRef.current.rotation.z, 0, 0.1);
         streamRef.current.scale.y = THREE.MathUtils.lerp(streamRef.current.scale.y, 0, 0.2);
-        (streamRef.current.material as THREE.Material).opacity = THREE.MathUtils.lerp((streamRef.current.material as THREE.Material).opacity, 0, 0.2);
+        (streamRef.current.material as THREE.Material).opacity = 0;
       }
     }
   });
@@ -117,18 +117,23 @@ function DrinkVisualizer({ base, milk, sweetness, size }: any) {
       {/* Milk Jug */}
       <group ref={jugRef} position={[3, 4, 0]}>
         <mesh castShadow>
-          <cylinderGeometry args={[0.4, 0.5, 1, 16]} />
-          <meshStandardMaterial color="#ddd" metalness={0.8} roughness={0.2} />
+          <cylinderGeometry args={[0.3, 0.4, 0.8, 16]} />
+          <meshStandardMaterial color="#eeeeee" metalness={0.9} roughness={0.1} />
         </mesh>
         {/* Spout */}
-        <mesh position={[-0.4, 0.5, 0]} rotation={[0, 0, Math.PI/4]}>
+        <mesh position={[-0.35, 0.4, 0]} rotation={[0, 0, Math.PI/4]}>
           <coneGeometry args={[0.1, 0.3, 16]} />
-          <meshStandardMaterial color="#ddd" metalness={0.8} roughness={0.2} />
+          <meshStandardMaterial color="#eeeeee" metalness={0.9} roughness={0.1} />
+        </mesh>
+        {/* Handle */}
+        <mesh position={[0.35, 0, 0]} rotation={[0, 0, -Math.PI/6]}>
+           <torusGeometry args={[0.2, 0.05, 16, 32, Math.PI]} />
+           <meshStandardMaterial color="#eeeeee" metalness={0.9} roughness={0.1} />
         </mesh>
         {/* Stream */}
-        <mesh ref={streamRef} position={[-0.5, -1.5, 0]} scale={[1, 0, 1]}>
-          <cylinderGeometry args={[0.05, 0.05, 3, 8]} />
-          <meshBasicMaterial color="#fff" transparent opacity={0} />
+        <mesh ref={streamRef} position={[-0.5, -1.0, 0]} scale={[1, 0, 1]}>
+          <cylinderGeometry args={[0.04, 0.02, 2.5, 8]} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={0} />
         </mesh>
       </group>
     </>
