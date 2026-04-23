@@ -43,8 +43,8 @@ export default function Showcase() {
         <CartButton />
 
         <div style={{ padding: '4rem 2rem', textAlign: 'center', background: 'var(--text-charcoal)', color: '#fff' }}>
-          <h1 style={{ fontSize: '3rem', fontWeight: 300, marginBottom: '1rem' }}>12 Upgrade Modules</h1>
-          <p style={{ opacity: 0.8 }}>Scroll down to see all the newly implemented components.</p>
+          <h1 style={{ fontSize: '3rem', fontWeight: 300, marginBottom: '1rem' }}>Artisan Offerings</h1>
+          <p style={{ opacity: 0.8 }}>Explore our finely crafted menu and atmospheric modules.</p>
         </div>
 
         {/* Module 10: 3D Hero */}

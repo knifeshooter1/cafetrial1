@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
+import { Environment } from '@react-three/drei';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../../context/CartContext.tsx';
 import { EspressoModel, MochaModel, CroissantModel, AlmondCroissantModel, DonutModel } from './FoodModels.tsx';
@@ -55,9 +56,10 @@ function MenuCard({ item }: { item: any }) {
     >
       {/* 3D Viewport */}
       <div style={{ height: '100%', width: '100%', position: 'absolute', inset: 0 }}>
-        <Canvas camera={{ position: [0, 2, 4], fov: 45 }}>
+        <Canvas camera={{ position: [0, 1, 3], fov: 45 }}>
           <ambientLight intensity={0.5} />
           <spotLight position={[5, 5, 5]} angle={0.2} penumbra={1} castShadow />
+          <Environment preset="city" />
           <item.Model hovered={hovered} flavor={item.flavor} />
         </Canvas>
       </div>

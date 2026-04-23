@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, ContactShadows } from '@react-three/drei';
+import { Environment, ContactShadows, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
 const bases = [
@@ -80,14 +80,13 @@ function DrinkVisualizer({ base, milk, sweetness, size }: any) {
         {/* Café Cup */}
         <mesh castShadow receiveShadow>
           <cylinderGeometry args={[1.2, 0.9, 2.5, 32]} />
-          <meshStandardMaterial color="#fff" roughness={0.1} />
+          <meshStandardMaterial color="#fff" roughness={0.1} side={THREE.DoubleSide} />
         </mesh>
         
-        {/* Cup Inside */}
-        <mesh position={[0, 0.1, 0]}>
-          <cylinderGeometry args={[1.15, 0.85, 2.4, 32]} />
-          <meshStandardMaterial color="#fff" roughness={0.1} side={THREE.BackSide} />
-        </mesh>
+        {/* Cup Logo */}
+        <Text position={[0, 0, 1.05]} rotation={[0, 0, 0]} fontSize={0.3} color="#2b1b13" font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff">
+          PAPUT
+        </Text>
 
         {/* Liquid Base */}
         <mesh position={[0, -1.2 + size.volume * 1.25, 0]}>
@@ -99,7 +98,7 @@ function DrinkVisualizer({ base, milk, sweetness, size }: any) {
         {milk.addsFoam && (
           <mesh position={[0, -1.2 + size.volume * 2.5 + 0.1, 0]}>
             <cylinderGeometry args={[1.05, 1.05, 0.2, 32]} />
-            <meshStandardMaterial color="#fff" roughness={0.9} />
+            <meshStandardMaterial color="#f5eedc" roughness={0.9} />
           </mesh>
         )}
 
