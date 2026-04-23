@@ -1,90 +1,63 @@
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Float, PresentationControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion } from 'framer-motion';
 
-// Cup geometry points
-const cupPoints: THREE.Vector2[] = [];
-for (let i = 0; i <= 10; i++) cupPoints.push(new THREE.Vector2(0.9 + i * 0.03, i * 0.2));
-cupPoints.push(new THREE.Vector2(1.22, 2.0));
-cupPoints.push(new THREE.Vector2(1.18, 2.0));
-for (let i = 10; i >= 1; i--) cupPoints.push(new THREE.Vector2(0.85 + i * 0.03, i * 0.2));
-cupPoints.push(new THREE.Vector2(0.0, 0.2));
-cupPoints.push(new THREE.Vector2(0.0, 0.0));
+const cupPts: THREE.Vector2[] = [];
+cupPts.push(new THREE.Vector2(0.0, 0.0));
+cupPts.push(new THREE.Vector2(0.85, 0.0));
+for (let i = 0; i <= 12; i++) { const t=i/12; cupPts.push(new THREE.Vector2(0.85+t*0.4+Math.sin(t*Math.PI)*0.05, t*2.2)); }
+cupPts.push(new THREE.Vector2(1.30,2.2)); cupPts.push(new THREE.Vector2(1.32,2.25)); cupPts.push(new THREE.Vector2(1.30,2.30)); cupPts.push(new THREE.Vector2(1.18,2.25));
+for (let i = 12; i >= 1; i--) { const t=i/12; cupPts.push(new THREE.Vector2(0.80+t*0.35+Math.sin(t*Math.PI)*0.04, t*2.2)); }
+cupPts.push(new THREE.Vector2(0.80, 0.15)); cupPts.push(new THREE.Vector2(0.0, 0.15));
 
-function CoffeeCupWithSteam() {
+function HeroCup() {
   const cupRef = useRef<THREE.Group>(null);
   const steamRef = useRef<THREE.Points>(null);
+  const particleCount = 60;
 
-  // Steam particles
-  const particleCount = 50;
-  const positions = new Float32Array(particleCount * 3);
-  const velocities: {x: number, y: number}[] = [];
-  
-  for (let i = 0; i < particleCount; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 0.8; // x
-    positions[i * 3 + 1] = 1.8 + Math.random() * 2; // y
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 0.8; // z
-    velocities.push({
-      y: 0.01 + Math.random() * 0.02,
-      x: (Math.random() - 0.5) * 0.01
-    });
-  }
+  const { positions, velocities } = useMemo(() => {
+    const pos = new Float32Array(particleCount * 3);
+    const vel: {x:number,y:number}[] = [];
+    for (let i = 0; i < particleCount; i++) {
+      pos[i*3] = (Math.random()-0.5)*0.8;
+      pos[i*3+1] = 1.8 + Math.random()*2;
+      pos[i*3+2] = (Math.random()-0.5)*0.8;
+      vel.push({ y:0.008+Math.random()*0.015, x:(Math.random()-0.5)*0.005 });
+    }
+    return { positions: pos, velocities: vel };
+  }, []);
 
   useFrame((state) => {
-    // Parallax tilt based on scroll (using mouse as proxy if scroll not directly accessible here, or just gentle auto-rotation)
     if (cupRef.current) {
-      cupRef.current.rotation.y = state.clock.elapsedTime * 0.1;
-      const scrollY = window.scrollY;
-      cupRef.current.rotation.x = scrollY * 0.001; // Parallax tilt
+      cupRef.current.rotation.y = state.clock.elapsedTime * 0.08;
+      cupRef.current.rotation.x = Math.sin(window.scrollY * 0.002) * 0.15;
     }
-
-    // Animate steam
     if (steamRef.current) {
-      const positions = steamRef.current.geometry.attributes.position.array as Float32Array;
+      const arr = steamRef.current.geometry.attributes.position.array as Float32Array;
       for (let i = 0; i < particleCount; i++) {
-        positions[i * 3 + 1] += velocities[i].y;
-        positions[i * 3] += velocities[i].x;
-        
-        // Reset particle if it goes too high
-        if (positions[i * 3 + 1] > 4) {
-          positions[i * 3 + 1] = 1.8;
-          positions[i * 3] = (Math.random() - 0.5) * 0.8;
-        }
+        arr[i*3+1] += velocities[i].y;
+        arr[i*3] += Math.sin(state.clock.elapsedTime + i) * 0.002;
+        if (arr[i*3+1] > 4.5) { arr[i*3+1] = 1.8; arr[i*3] = (Math.random()-0.5)*0.6; }
       }
       steamRef.current.geometry.attributes.position.needsUpdate = true;
     }
   });
 
   return (
-    <group position={[0, -1, 0]}>
-      <Float rotationIntensity={0.2} floatIntensity={1} speed={2}>
+    <group position={[0,-1,0]}>
+      <Float rotationIntensity={0.15} floatIntensity={0.8} speed={1.5}>
         <group ref={cupRef}>
-          {/* Cup */}
-          <mesh castShadow receiveShadow>
-            <latheGeometry args={[cupPoints, 64]} />
-            <meshStandardMaterial color="#2C2C2C" roughness={0.2} metalness={0.5} side={THREE.DoubleSide} />
-          </mesh>
-          {/* Coffee */}
-          <mesh position={[0, 1.8, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <circleGeometry args={[1.05, 64]} />
-            <meshStandardMaterial color="#1a0f0a" roughness={0.9} />
-          </mesh>
-          {/* Handle */}
-          <mesh position={[1.0, 1.0, 0]} rotation={[0, 0, -Math.PI / 10]}>
-            <torusGeometry args={[0.5, 0.12, 16, 64]} />
-            <meshStandardMaterial color="#2C2C2C" roughness={0.2} metalness={0.5} />
-          </mesh>
+          <mesh castShadow receiveShadow><latheGeometry args={[cupPts,64]}/><meshPhysicalMaterial color="#1A1A1A" roughness={0.15} metalness={0.6} clearcoat={0.4} side={THREE.DoubleSide}/></mesh>
+          <mesh position={[0,2.1,0]} rotation={[-Math.PI/2,0,0]}><circleGeometry args={[1.12,64]}/><meshStandardMaterial color="#1a0f0a" roughness={0.9}/></mesh>
+          <mesh position={[0,2.11,0]} rotation={[-Math.PI/2,0,0]}><ringGeometry args={[0.1,0.35,32]}/><meshStandardMaterial color="#C8A882" transparent opacity={0.5}/></mesh>
+          <mesh position={[1.15,1.2,0]} rotation={[0,0,-Math.PI/12]}><torusGeometry args={[0.55,0.1,16,64,Math.PI]}/><meshPhysicalMaterial color="#1A1A1A" roughness={0.15} metalness={0.6} clearcoat={0.4}/></mesh>
         </group>
       </Float>
-
-      {/* Steam */}
       <points ref={steamRef}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-        </bufferGeometry>
-        <pointsMaterial size={0.15} color="#ffffff" transparent opacity={0.3} depthWrite={false} />
+        <bufferGeometry><bufferAttribute attach="attributes-position" args={[positions, 3]}/></bufferGeometry>
+        <pointsMaterial size={0.12} color="#ffffff" transparent opacity={0.25} depthWrite={false}/>
       </points>
     </group>
   );
@@ -92,41 +65,28 @@ function CoffeeCupWithSteam() {
 
 export default function Hero3D() {
   return (
-    <section style={{ height: '100vh', width: '100%', position: 'relative', backgroundColor: '#1A1A1A', overflow: 'hidden' }}>
-      
-      <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-        <Canvas shadows camera={{ position: [0, 2, 8], fov: 45 }}>
-          <ambientLight intensity={0.2} />
-          <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} castShadow color="#ffebd6" />
-          <spotLight position={[-10, 5, -10]} angle={0.3} penumbra={1} intensity={1} color="#a7b6a1" />
-          
-          <PresentationControls global rotation={[0, 0, 0]} polar={[-0.2, 0.2]} azimuth={[-0.5, 0.5]}>
-            <CoffeeCupWithSteam />
+    <section style={{ height:'100vh', width:'100%', position:'relative', backgroundColor:'#0F0F0F', overflow:'hidden' }}>
+      <div style={{ position:'absolute', inset:0, zIndex:1 }}>
+        <Canvas shadows camera={{ position:[0,2,8], fov:45 }}>
+          <ambientLight intensity={0.15}/>
+          <spotLight position={[10,12,10]} angle={0.2} penumbra={1} intensity={2.5} castShadow color="#ffebd6"/>
+          <spotLight position={[-8,5,-8]} angle={0.3} penumbra={1} intensity={0.8} color="#a7b6a1"/>
+          <PresentationControls global rotation={[0,0,0]} polar={[-0.2,0.2]} azimuth={[-0.5,0.5]}>
+            <HeroCup/>
           </PresentationControls>
-          
-          <Environment preset="night" />
+          <Environment preset="night"/>
         </Canvas>
       </div>
-
-      <div style={{ position: 'absolute', top: '50%', left: '10%', transform: 'translateY(-50%)', zIndex: 10, pointerEvents: 'none', color: '#fff' }}>
-        <motion.h1 
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1 }}
-          style={{ fontSize: '5rem', fontWeight: 300, margin: 0, letterSpacing: '0.05em' }}
-        >
+      <div style={{ position:'absolute', top:'50%', left:'8%', transform:'translateY(-50%)', zIndex:10, pointerEvents:'none', color:'#fff' }}>
+        <motion.h1 initial={{ opacity:0, x:-50 }} animate={{ opacity:1, x:0 }} transition={{ duration:1.2 }}
+          style={{ fontSize:'clamp(3rem, 7vw, 6rem)', fontWeight:400, margin:0, letterSpacing:'0.03em', lineHeight:1.1 }}>
           Paput<br/>Menorca
         </motion.h1>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.5 }}
-          style={{ fontSize: '1.2rem', color: '#A7B6A1', marginTop: '1rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}
-        >
+        <motion.p initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ duration:1, delay:0.6 }}
+          style={{ fontSize:'1.1rem', color:'#D4A574', marginTop:'1.5rem', letterSpacing:'0.15em', textTransform:'uppercase', fontWeight:300 }}>
           Awaken your senses.
         </motion.p>
       </div>
-
     </section>
   );
 }
